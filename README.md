@@ -19,18 +19,16 @@ Performance Plots when varying the alpha parameter on PER
   <img src="https://github.com/sush1996/DDPG_Fetch/blob/master/plots/alpha_plots_fp.png?raw=true" width="400" />
   <img src="https://github.com/sush1996/DDPG_Fetch/blob/master/plots/alpha_plots_fs.png?raw=true" width="400" />
 </p>
-* Correction: The plot on the right is for FetchSlide but has been mistakenly labelled as FetchPush
+* Correction: The plot on the right is for FetchSlide but has been mistakenly labelled as FetchPush</br>
 
 
-
-
-Addition of PER along with finetuning the alpha parameter boosts its performance. 
+Addition of PER along with finetuning the alpha parameter boosts its performance.</br>
 
 The inclusion of the PER algo within the DDPG-HER framework can be done in many ways, it could give greater performance boosts if combined well.
-(The integration of PER in this code isn't perfect, just something I tried out over a weekend)
+(The integration of PER in this code isn't perfect, just something I tried out over a weekend) </br>
 
 Use the command below to start training. (Avoid using sudo, if you get an "EXPORT LIBRARY.. .bashrc" error) 
 
-'''
+```
 mpirun -np 19 python3 train.py
-'''
+```
