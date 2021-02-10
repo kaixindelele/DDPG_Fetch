@@ -72,7 +72,7 @@ class ddpg_agent:
         train the network
         """
 
-        to_plot, sum_priority, reward_plot, i  = [], 0, [], 0
+        to_plot, sum_priority, reward_plot, i = [], 0, [], 0
         alpha = 0.5
         epsilon = 0.1
 
@@ -119,8 +119,10 @@ class ddpg_agent:
 
                                 inputs_norm_tensor = torch.tensor(inputs_norm, dtype=torch.float32)
                                 action_tensor = torch.tensor(action, dtype=torch.float32)
-
-                                q_curr = self.critic_network(inputs_norm_tensor.view(1,-1), action_tensor.view(1,-1)) 
+                                # add cuda_flag for critic_network
+                                q_curr = self.critic_network(inputs_norm_tensor.view(1, -1),
+                                                             action_tensor.view(1, -1),
+                                                             cuda_flag=self.args.cuda)
                                 q_curr_value = q_curr.detach()
 
                                 obs_next_norm, ag_next_norm = self._preproc_og(obs_new, g)
@@ -131,14 +133,22 @@ class ddpg_agent:
                                 inputs_next_norm = list(obs_next_norm) + list(ag_next_norm)
                                 inputs_next_norm_tensor = torch.tensor(inputs_next_norm, dtype=torch.float32)
                                 
+                                # change pi_next to pi_next.cuda()
+                                if self.args.cuda:
+                                    inputs_norm_tensor = inputs_norm_tensor.cuda()
                                 pi_next = self.actor_network(inputs_norm_tensor)
                                 action_next = self._select_actions(pi_next)
-                                action_next_tensor  = torch.tensor(action_next, dtype=torch.float32)
+                                action_next_tensor = torch.tensor(action_next, dtype=torch.float32)
 
-                                q_next_target = self.critic_target_network(inputs_next_norm_tensor.view(1,-1), action_next_tensor.view(1,-1))
+                                q_next_target = self.critic_target_network(inputs_next_norm_tensor.view(1,-1),
+                                                                           action_next_tensor.view(1,-1),
+                                                                           cuda_flag=self.args.cuda)
                                 q_next_value = q_next_target.detach()
-                                
-                                td_error = np.abs(q_curr_value - q_next_value)
+                                if self.args.cuda:
+                                    # extract td_error from cuda to numpy
+                                    td_error = np.abs((q_curr_value - q_next_value).detach().cpu().numpy()[0, 0])
+                                else:
+                                    td_error = np.abs(q_curr_value - q_next_value)
                                 
                                 priority = (td_error + epsilon) ** alpha
                                 sum_priority += priority
@@ -231,7 +241,7 @@ class ddpg_agent:
                             self.model_path + '/model.pt')
                 
         if MPI.COMM_WORLD.Get_rank() == 0:
-            plt.plot(range(50*1*1), reward_plot)
+            # delete reward_plot
             plt.plot(range(self.args.n_epochs), to_plot)
             
             if self.args.env_name == 'FetchReach-v1':
@@ -261,9 +271,7 @@ class ddpg_agent:
                 plt.savefig("{}_DDPG".format(self.args.env_name))    
                 np.save("{}_DDPG".format(self.args.env_name), to_plot)
 
-            plt.show()
-
-            
+            plt.show()            
     
     # pre_process the inputs
     def _preproc_inputs(self, obs, g):
