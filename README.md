@@ -32,3 +32,31 @@ Use the command below to start training. (Avoid using sudo, if you get an "EXPOR
 ```
 mpirun -np 19 python3 train.py
 ```
+
+# compared with baselines~
+
+In https://github.com/openai/baselines/tree/master/baselines/her, 
+if we run:
+
+>mpirun -np 19 python -m baselines.run --num_env=2 --alg=her
+
+We will get success rate about 1 at 10 epochs for FetchPush-v1.
+
+
+
+# pytorch-gpu vs pytorch-cpu with "mpirun -np 1 python train.py":
+
+pytorch-gpu:
+>[2021-02-10 18:05:54.221622] epoch is: 0, eval success rate is: 0.000
+[2021-02-10 18:06:33.721338] epoch is: 1, eval success rate is: 0.100
+[2021-02-10 18:07:14.687354] epoch is: 2, eval success rate is: 0.100
+[2021-02-10 18:07:55.489233] epoch is: 3, eval success rate is: 0.300
+
+pytorch-cpu:
+>[2021-02-10 18:08:24.399713] epoch is: 0, eval success rate is: 0.100
+[2021-02-10 18:11:02.360476] epoch is: 1, eval success rate is: 0.100
+[2021-02-10 18:13:39.896622] epoch is: 2, eval success rate is: 0.000
+[2021-02-10 18:16:15.620439] epoch is: 3, eval success rate is: 0.000
+
+Time consumption ratio ≈ 1:5
+
