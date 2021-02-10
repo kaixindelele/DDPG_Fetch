@@ -7,6 +7,7 @@ the input x in both networks should be [o, g], where o is the observation and g 
 
 """
 
+
 # define the actor network
 class actor(nn.Module):
     def __init__(self, env_params):
@@ -27,17 +28,22 @@ class actor(nn.Module):
 
         return actions
 
+
 class critic(nn.Module):
     def __init__(self, env_params):
         super(critic, self).__init__()
-        
         self.max_action = env_params['action_max']
         self.fc1 = nn.Linear(env_params['obs'] + env_params['goal'] + env_params['action'], 256)
         self.fc2 = nn.Linear(256, 256)
         self.fc3 = nn.Linear(256, 256)
         self.q_out = nn.Linear(256, 1)
 
-    def forward(self, x, actions):
+    def forward(self, x, actions, cuda_flag=False):
+        # add .cuda() opt
+        if cuda_flag:
+            x = x.cuda()
+            actions = actions.cuda()
+
         x = torch.cat([x, actions / self.max_action], dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
